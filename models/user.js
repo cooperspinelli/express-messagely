@@ -52,8 +52,7 @@ class User {
 
     const hashed_password = result.rows[0].password;
 
-    // TODO: Be more specific here === true
-    return await bcrypt.compare(password, hashed_password);
+    return (await bcrypt.compare(password, hashed_password)) === true;
   }
 
   /** Update last_login_at for user */
@@ -75,9 +74,9 @@ class User {
   static async all() {
     const results = await db.query(
       `SELECT username, first_name, last_name
-      FROM users`
+      FROM users
+      ORDER BY username`
     );
-    // TODO: order by
 
     return results.rows;
   }
