@@ -13,7 +13,7 @@ const router = new Router();
 router.post('/login', async function (req, res, next) {
   const { username, password } = req.body;
 
-  const isValid = User.authenticate(username, password);
+  const isValid = await User.authenticate(username, password);
   if (!isValid) throw new NotFoundError("Invalid credentials.");
 
   User.updateLoginTimestamp(username);
@@ -30,9 +30,8 @@ router.post('/login', async function (req, res, next) {
  */
 
 router.post('/register', async function (req, res, next) {
-  console.log("*************** inside /register");
   const newUserData = req.body;
-  const newUser = User.register(newUserData);
+  const newUser = await User.register(newUserData);
 
   User.updateLoginTimestamp(newUser.username);
 

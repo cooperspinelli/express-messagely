@@ -5,7 +5,7 @@
 
 const express = require("express");
 const cors = require("cors");
-const { authenticateJWT } = require("./middleware/auth");
+const { authenticateJWT, ensureLoggedIn } = require("./middleware/auth");
 
 const { NotFoundError } = require("./expressError");
 const app = new express();
@@ -26,8 +26,9 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
 
+
 app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
+app.use("/users", ensureLoggedIn, userRoutes);
 app.use("/messages", messageRoutes);
 
 
