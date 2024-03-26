@@ -8,12 +8,16 @@ const { SECRET_KEY } = require("../config");
 const Router = require("express").Router;
 const router = new Router();
 
+// TODO: get tests to pass!!!
+
 /** POST /login: {username, password} => {token} */
 
 router.post('/login', async function (req, res, next) {
+  // TODO: Add some guarding here, request.body might be undefined
   const { username, password } = req.body;
 
   const isValid = await User.authenticate(username, password);
+  // TODO: this should be an unauthorized error
   if (!isValid) throw new NotFoundError("Invalid credentials.");
 
   User.updateLoginTimestamp(username);
@@ -30,6 +34,7 @@ router.post('/login', async function (req, res, next) {
  */
 
 router.post('/register', async function (req, res, next) {
+  // TODO: req.body might be undefined here
   const newUserData = req.body;
   const newUser = await User.register(newUserData);
 

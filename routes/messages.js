@@ -3,6 +3,7 @@
 const Router = require("express").Router;
 const { ForbiddenError } = require("../expressError");
 const Message = require("../models/message");
+
 const router = new Router();
 
 /** GET /:id - get detail of message.
@@ -52,6 +53,15 @@ router.post("/", async function (req, res, next) {
  * Makes sure that the only the intended recipient can mark as read.
  *
  **/
+router.post("/:id/read", async function (req, res, next) {
+  let message = await Message.get(req.params.id);
+  if (res.locals.user.username !== message.to_user.username) {
+    throw new ForbiddenError();
+  }
+
+  message = await Message.markRead(req.params.id);
+  res.json({ message });
+});
 
 
 module.exports = router;

@@ -1,10 +1,10 @@
 "use strict";
 
 const Router = require("express").Router;
-const router = new Router();
 const User = require("../models/user");
 const { ensureCorrectUser } = require("../middleware/auth");
 
+const router = new Router();
 
 /** GET / - get list of users.
  *
@@ -13,6 +13,7 @@ const { ensureCorrectUser } = require("../middleware/auth");
  **/
 router.get("/", async function(req, res, next) {
   const users = await User.all();
+  // TODO: this should be an object
   res.json(users);
 });
 
@@ -57,6 +58,8 @@ router.get("/:username/from", ensureCorrectUser, async function(req, res, next) 
   const messages = await User.messagesFrom(req.params.username);
   res.json({ messages });
 });
+
+//TODO: ensureCorrectUser is inclusive of what ensurelogin does
 
 
 module.exports = router;
