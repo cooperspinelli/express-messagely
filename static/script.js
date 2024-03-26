@@ -6,37 +6,33 @@ const $contentContainer = $("#content");
 // if they are signed in, display messages page
 // if not, display login or register page
 
-function checkSignedIn(evt) {
-  const userKey = localStorage.getItem("userKey");
+async function checkSignedIn(evt) {
+  const userKey = localStorage.getItem("token");
   if (userKey) {
-    displayMessages();
+    await displayMessages();
   } else {
     displaySignIn();
   }
 }
 
 function displaySignIn() {
-  //$contentContainer.empty();
+  $contentContainer.empty();
   $contentContainer.append(constructSignInHtml());
 }
 
 function constructSignInHtml() {
   return $(`
   <div class="col-4">
-    <form>
-      <label for="username">Username</label>
-      <input type="text" name="username" id="password">
-      <label for="password">Password</label>
-      <input type="text" name="password" id="password">
-      <button class="mt-2 btn btn-primary" id="login-btn">Log In</button>
-    </form>
+    <label for="username">Username</label>
+    <input type="text" name="username" id="username">
+    <label for="password">Password</label>
+    <input type="text" name="password" id="password">
+    <button class="mt-2 btn btn-primary" id="login-btn">Log In</button>
   </div>
   `);
 }
 
 async function handleLogin(evt) {
-  evt.preventDefault();
-
   const username = $("#username").val();
   const password = $("#password").val();
 
@@ -47,15 +43,17 @@ async function handleLogin(evt) {
   displayMessages();
 }
 
-async function login() {
+async function login(username, password) {
+  const body = JSON.stringify({
+    username: username,
+    password: password
+  });
+  console.log(body);
   const result = await fetch("/auth/login", {
     headers: {
       "Content-Type": "application/json"
     },
-    body: {
-      username: username,
-      password: password
-    },
+    body: body,
     method: "POST"
   });
 
@@ -63,14 +61,28 @@ async function login() {
   return responseData.token;
 }
 
-function displayMessages() {
-  $contentContainer.empty();
 
-  const messages = getMessages();
-  $contentContainer.append(constructMessagesHtml());
+
+async function displayMessages() {
+  $contentContainer.empty();
+  const messages = await getMessages();
+  console.log()
+  $contentContainer.append(constructMessagesHtml(messages));
 }
 
-function constructMessageHtml(message) {
+function constructMessageFromHtml(message) {
+  return $(`
+    <div class="card" style="width: 18rem;">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-body-secondary">From ${message.to_user.username}</h6>
+        <p class="card-text">${message.body}</p>
+        <button href="#" class="card-link">Mark Read</button>
+      </div>
+    </div>
+  `);
+}
+
+function constructMessageToHtml(message) {
   return $(`
     <div class="card" style="width: 18rem;">
       <div class="card-body">
@@ -84,23 +96,40 @@ function constructMessageHtml(message) {
 
 
 function constructMessagesHtml(messages) {
+  const $messages = $('<div>');
+  $messages.append('<h1>Messages to Me</h1>');
 
+  const $messagesTo = $('<div>');
+  for (let message of messages[0]) {
+    $messagesTo.append(constructMessageToHtml(message));
+  }
+  $messages.append($messagesTo);
+
+  $messages.append('<h1>Messages from Me</h1>');
+
+  const $messagesFrom = $('<div>');
+  for (let message of messages[1]) {
+    $messagesFrom.append(constructMessageFromHtml(message));
+  }
+  $messages.append($messagesFrom);
+
+  return $messages;
 }
 
 async function getMessages() {
   const username = localStorage.getItem("username");
   const token = localStorage.getItem("token");
 
-  const response = await fetch(`/users/${username}/to?_token=${token}`);
-  const messagesTo = response.json();
+  const responseTo = await fetch(`/users/${username}/to?_token=${token}`);
+  const messagesTo = await responseTo.json();
 
-  response = await fetch(`/users/${username}/from?_token=${token}`);
-  const messagesFrom = response.json();
+  const responseFrom = await fetch(`/users/${username}/from?_token=${token}`);
+  const messagesFrom = await responseFrom.json();
 
-  return [messagesTo, messagesFrom];
+  // TODO: promise.allSettled
+  return [messagesTo.messages, messagesFrom.messages];
 }
 
 
-
-$("#login-btn").on("click", login);
+$contentContainer.on("click", "#login-btn", handleLogin);
 $(window).on("load", checkSignedIn);
