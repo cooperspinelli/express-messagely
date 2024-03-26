@@ -21,6 +21,9 @@ app.use(cors());
 // get auth token for all routes
 app.use(authenticateJWT);
 
+
+app.use(express.static("static"));
+
 /** routes */
 
 const authRoutes = require("./routes/auth");
@@ -31,11 +34,6 @@ const messageRoutes = require("./routes/messages");
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/messages", ensureLoggedIn, messageRoutes);
-
-
-app.get("/", function (req, res, next) {
-  res.sendFile(path.join(__dirname, 'static', 'index.html'));
-});
 
 
 /** 404 handler: matches unmatched routes; raises NotFoundError. */

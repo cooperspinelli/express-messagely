@@ -20,6 +20,7 @@ const router = new Router();
  **/
 
 router.get("/:id", async function (req, res, next) {
+  // TODO: const user = res.locals.user
   const message = await Message.get(req.params.id);
   const isFromUser = res.locals.user.username === message.from_user.username;
   const isToUser = res.locals.user.username === message.to_user.username;
