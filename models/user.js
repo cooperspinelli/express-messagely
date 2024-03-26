@@ -3,7 +3,7 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const { BCRYPT_WORK_FACTOR } = require("../config");
-const { NotFoundError, BadRequestError } = require("../expressError");
+const { NotFoundError, BadRequestError, UnauthorizedError } = require("../expressError");
 
 /** User of the site. */
 
@@ -14,7 +14,7 @@ class User {
    */
 
   static async register({ username, password, first_name, last_name, phone }) {
-    // TODO: return the hashed password instead
+
     const hashed_password = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
     let result;
 
@@ -28,15 +28,13 @@ class User {
                             join_at)
            VALUES
              ($1, $2, $3, $4, $5, current_timestamp)
-           RETURNING username, first_name, last_name, phone`,
+           RETURNING username, password, first_name, last_name, phone`,
         [username, hashed_password, first_name, last_name, phone]);
     } catch (err) {
       throw new BadRequestError();
     }
 
-    const userData = result.rows[0];
-    userData.password = password;
-    return userData;
+    return result.rows[0];
   }
 
   /** Authenticate: is username/password valid? Returns boolean. */
@@ -48,7 +46,7 @@ class User {
       WHERE username = $1`, [username]
     );
 
-    if (!result.rows[0]) throw new NotFoundError("User not found.");
+    if (!result.rows[0]) throw new UnauthorizedError("Invalid credentials.");
 
     const hashed_password = result.rows[0].password;
 

@@ -5,6 +5,7 @@
 
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { authenticateJWT, ensureLoggedIn } = require("./middleware/auth");
 
 const { NotFoundError } = require("./expressError");
@@ -28,8 +29,13 @@ const messageRoutes = require("./routes/messages");
 
 
 app.use("/auth", authRoutes);
-app.use("/users", ensureLoggedIn, userRoutes);
+app.use("/users", userRoutes);
 app.use("/messages", ensureLoggedIn, messageRoutes);
+
+
+app.get("/", function(req, res, next) {
+  res.sendFile(path.join(__dirname, 'static', 'index.html'));
+})
 
 
 /** 404 handler: matches unmatched routes; raises NotFoundError. */

@@ -2,7 +2,7 @@
 
 const Router = require("express").Router;
 const User = require("../models/user");
-const { ensureCorrectUser } = require("../middleware/auth");
+const { ensureCorrectUser, ensureLoggedIn } = require("../middleware/auth");
 
 const router = new Router();
 
@@ -11,10 +11,10 @@ const router = new Router();
  * => {users: [{username, first_name, last_name}, ...]}
  *
  **/
-router.get("/", async function(req, res, next) {
+router.get("/", ensureLoggedIn, async function (req, res, next) {
   const users = await User.all();
-  // TODO: this should be an object
-  res.json(users);
+
+  res.json({ users });
 });
 
 
@@ -23,7 +23,7 @@ router.get("/", async function(req, res, next) {
  * => {user: {username, first_name, last_name, phone, join_at, last_login_at}}
  *
  **/
-router.get("/:username", ensureCorrectUser, async function(req, res, next) {
+router.get("/:username", ensureCorrectUser, async function (req, res, next) {
   const user = await User.get(req.params.username);
   res.json({ user });
 });
@@ -38,7 +38,7 @@ router.get("/:username", ensureCorrectUser, async function(req, res, next) {
  *                 from_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
-router.get("/:username/to", ensureCorrectUser, async function(req, res, next) {
+router.get("/:username/to", ensureCorrectUser, async function (req, res, next) {
   const messages = await User.messagesTo(req.params.username);
   res.json({ messages });
 });
@@ -54,12 +54,9 @@ router.get("/:username/to", ensureCorrectUser, async function(req, res, next) {
  *                 to_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
-router.get("/:username/from", ensureCorrectUser, async function(req, res, next) {
+router.get("/:username/from", ensureCorrectUser, async function (req, res, next) {
   const messages = await User.messagesFrom(req.params.username);
   res.json({ messages });
 });
-
-//TODO: ensureCorrectUser is inclusive of what ensurelogin does
-
 
 module.exports = router;
